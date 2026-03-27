@@ -6,8 +6,8 @@ This project is intended to organize direct, useful material on tools, concepts,
 
 ## Current structure
 
+- `linux/` — shell command references and practical Linux guides
 - `networks/` — notes, manuals, and references related to networking
-- `operating-systems/` — guides and materials related to operating systems
 
 ## Scope
 
