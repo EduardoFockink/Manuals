@@ -1,156 +1,114 @@
-# Scan Tools
+# Ferramentas de scan
 
-**Data de criação:** 2026-03-23  
-**Descrição:** Documento enxuto de referência para comandos comuns de reconhecimento em offensive security, com foco em finalidade, funcionamento e parâmetros principais de uso.
-
----
+Comandos de reconhecimento usados em offensive security e auditoria de rede: consulta de registro (`whois`), DNS (`nslookup`, `host`), traçado de rota (`traceroute`), fingerprinting web (`whatweb`) e enumeração por wordlist (`dnsmap`, `dirb`). A maioria depende apenas de DNS/HTTP, então roda em qualquer máquina sem privilégios especiais.
 
 ## Sumário
 
-- whois
-- nslookup
-- host
-- traceroute
-- whatweb
-- dnsmap
-- dirb
+- [whois](#whois)
+- [nslookup](#nslookup)
+- [host](#host)
+- [traceroute](#traceroute)
+- [whatweb](#whatweb)
+- [dnsmap](#dnsmap)
+- [dirb](#dirb)
 
 ---
 
-## Corpo do documento
-
 ## whois
 
-**Para que serve:**  
-Consulta informações de registro de domínios, blocos IP e ASNs, como registrador, datas, contatos e servidores responsáveis.
+Consulta dados de registro de domínios, blocos IP e ASNs: registrador, datas, contatos, servidores responsáveis. O cliente fala com um servidor WHOIS e segue redirecionamentos até o servidor autoritativo do recurso. Útil na fase inicial de reconhecimento para mapear ownership e infraestrutura.
 
-**Como funciona:**  
-O cliente consulta um servidor WHOIS e, quando necessário, segue redirecionamentos até o servidor autoritativo que possui os dados do recurso consultado.
-
-**Principais parâmetros:**  
-- `whois alvo` — consulta básica de domínio ou IP  
-- `-h HOST` — força um servidor WHOIS específico  
-- `-I` — consulta primeiro a IANA  
-- `--no-recursion` — não segue redirecionamentos  
-- `-i ATTR` — busca por atributo  
-- `-T TYPE` — filtra por tipo de objeto  
+- `whois alvo` — consulta domínio ou IP
+- `whois -h HOST alvo` — força servidor WHOIS específico
+- `whois -I alvo` — consulta primeiro a IANA
+- `whois --no-recursion alvo` — não segue redirecionamentos
+- `whois -i ATTR valor` — busca por atributo
+- `whois -T TYPE alvo` — filtra por tipo de objeto
 
 ---
 
 ## nslookup
 
-**Para que serve:**  
-Realiza consultas DNS para validar resolução de nomes, identificar registros e testar servidores DNS específicos.
+Consulta DNS interativa ou pontual. Aceita servidor de DNS específico no segundo argumento — útil para comparar respostas entre resolvers e detectar DNS poisoning ou split-horizon.
 
-**Como funciona:**  
-Envia queries DNS diretamente ao servidor configurado ou a um nameserver indicado manualmente, permitindo consulta interativa ou pontual.
-
-**Principais parâmetros:**  
-- `nslookup alvo` — consulta básica  
-- `nslookup alvo servidor` — consulta usando um DNS específico  
-- `-query=TYPE` — define o tipo de registro (`A`, `AAAA`, `MX`, `NS`, `TXT`, `PTR`)  
-- `set norecurse` — desativa recursão  
-- `set timeout=N` — ajusta timeout  
-- `set retry=N` — ajusta tentativas  
+- `nslookup alvo` — consulta básica usando o resolver do sistema
+- `nslookup alvo 8.8.8.8` — consulta usando DNS específico
+- `nslookup -query=TYPE alvo` — define tipo de registro (`A`, `AAAA`, `MX`, `NS`, `TXT`, `PTR`)
+- `nslookup -query=ANY alvo` — todos os tipos (muitos resolvers bloqueiam)
+- Modo interativo: `set norecurse`, `set timeout=N`, `set retry=N`
 
 ---
 
 ## host
 
-**Para que serve:**  
-Faz consultas DNS rápidas e objetivas, sendo útil para enumeração simples e automação em shell.
+Resolução DNS objetiva e direta — alternativa rápida ao `nslookup`, melhor para shell scripts. Suporta tentativa de zone transfer, que pode revelar a zona inteira se o servidor estiver mal configurado.
 
-**Como funciona:**  
-Resolve nomes para IPs, IPs para nomes e permite consultar registros específicos diretamente em um nameserver escolhido.
-
-**Principais parâmetros:**  
-- `host alvo` — resolução básica  
-- `host alvo servidor` — consulta em um nameserver específico  
-- `-t TYPE` — escolhe o tipo de registro  
-- `-a` — saída detalhada  
-- `-l dominio` — tenta zone transfer  
-- `-r` — desativa recursão  
-- `-W N` — define timeout  
+- `host alvo` — resolução básica
+- `host alvo 8.8.8.8` — consulta em nameserver específico
+- `host -t TYPE alvo` — escolhe tipo de registro
+- `host -a alvo` — saída detalhada (todos os registros)
+- `host -l dominio.com ns.dominio.com` — tenta zone transfer (AXFR)
+- `host -r alvo` — desativa recursão
+- `host -W N alvo` — timeout em segundos
 
 ---
 
 ## traceroute
 
-**Para que serve:**  
-Mapeia o caminho de rede até um host, ajudando a identificar saltos, filtragens, latência e pontos de falha.
+Mapeia o caminho de rede até o destino enviando pacotes com TTL crescente — cada roteador no caminho responde quando o TTL expira. Revela hops, latência e pontos de filtragem. Pacotes UDP por padrão; muitos firewalls os bloqueiam, então `-I` (ICMP) ou `-T` (TCP) costuma ir mais longe.
 
-**Como funciona:**  
-Envia pacotes com TTL crescente; cada roteador no caminho responde quando o TTL expira, revelando os hops intermediários.
-
-**Principais parâmetros:**  
-- `traceroute alvo` — execução padrão  
-- `-I` — usa ICMP  
-- `-T` — usa TCP SYN  
-- `-p PORTA` — define a porta de destino  
-- `-f N` — define o TTL inicial  
-- `-m N` — define o número máximo de hops  
-- `-n` — não resolve nomes  
-- `-w N` — timeout por resposta  
+- `traceroute alvo` — execução padrão (UDP)
+- `traceroute -I alvo` — usa ICMP (igual ao traceroute do Windows)
+- `traceroute -T -p 443 alvo` — TCP SYN na porta 443 (atravessa firewalls que liberam HTTPS)
+- `traceroute -n alvo` — não resolve nomes (mais rápido)
+- `traceroute -f N alvo` — TTL inicial
+- `traceroute -m N alvo` — número máximo de hops
+- `traceroute -w N alvo` — timeout por resposta
 
 ---
 
 ## whatweb
 
-**Para que serve:**  
-Identifica tecnologias expostas por aplicações web, como CMS, frameworks, bibliotecas JS, servidor web e outros componentes.
+Fingerprinting de aplicações web. Analisa headers HTTP, conteúdo HTML e padrões de URL para identificar CMS, frameworks, bibliotecas JS, servidores e versões. Útil antes de escolher exploits ou wordlists específicas.
 
-**Como funciona:**  
-Analisa respostas HTTP e aplica assinaturas e plugins para detectar tecnologias, versões e indícios de stack.
-
-**Principais parâmetros:**  
-- `whatweb URL` — fingerprinting básico  
-- `-a LEVEL` — nível de agressividade  
-- `-v` — saída detalhada  
-- `-H "Header: valor"` — adiciona cabeçalho customizado  
-- `-U "User-Agent"` — altera o User-Agent  
-- `--follow-redirect` — segue redirecionamentos  
-- `--proxy URL` — usa proxy  
-- `-t N` — número de threads  
-- `--log-json arquivo` — salva saída em JSON  
+- `whatweb URL` — fingerprinting básico
+- `whatweb -a 3 URL` — agressividade 1 a 4 (4 = mais consultas, mais barulho)
+- `whatweb -v URL` — saída detalhada com plugins acionados
+- `whatweb -H "Header: valor" URL` — header customizado
+- `whatweb -U "User-Agent" URL` — altera User-Agent
+- `whatweb --follow-redirect URL` — segue redirecionamentos
+- `whatweb --proxy http://127.0.0.1:8080 URL` — usa proxy (Burp/ZAP)
+- `whatweb -t N URL` — número de threads
+- `whatweb --log-json saida.json URL` — saída JSON
 
 ---
 
 ## dnsmap
 
-**Para que serve:**  
-Realiza brute force de subdomínios para ampliar a superfície de ataque visível do alvo.
+Brute force de subdomínios contra uma wordlist para ampliar a superfície visível do alvo. Diferente de varreduras ativas no host, só faz consultas DNS — invisível para o servidor web final, mas pode aparecer em logs do DNS autoritativo.
 
-**Como funciona:**  
-Testa entradas de uma wordlist contra o domínio informado e registra os subdomínios que resolvem para endereços válidos.
-
-**Principais parâmetros:**  
-- `dnsmap dominio.com` — enumeração padrão  
-- `-w wordlist.txt` — define wordlist customizada  
-- `-r arquivo.txt` — salva saída em texto  
-- `-c arquivo.csv` — salva saída em CSV  
-- `-d N` — adiciona atraso entre consultas  
-- `-i IP` — ignora IPs já conhecidos na saída  
+- `dnsmap dominio.com` — enumeração com wordlist embutida
+- `dnsmap dominio.com -w wordlist.txt` — wordlist customizada
+- `dnsmap dominio.com -r saida.txt` — salva em texto
+- `dnsmap dominio.com -c saida.csv` — salva em CSV
+- `dnsmap dominio.com -d N` — atraso entre consultas (evita rate-limiting)
+- `dnsmap dominio.com -i IP` — ignora IPs já conhecidos no relatório
 
 ---
 
 ## dirb
 
-**Para que serve:**  
-Descobre diretórios, arquivos e endpoints ocultos em aplicações web por meio de wordlists.
+Descobre diretórios, arquivos e endpoints ocultos enviando requisições HTTP baseadas em wordlist. Interpreta códigos de resposta para distinguir o que existe do que não existe. Para alvos modernos, prefira `gobuster`, `feroxbuster` ou `ffuf` (mais rápidos e flexíveis); `dirb` segue útil em ambientes mínimos.
 
-**Como funciona:**  
-Gera caminhos com base em uma wordlist, envia requisições HTTP e interpreta os códigos de resposta para detectar conteúdo existente.
-
-**Principais parâmetros:**  
-- `dirb URL` — execução padrão  
-- `dirb URL wordlist.txt` — usa uma wordlist específica  
-- `-X .php,.txt,.bak` — testa extensões adicionais  
-- `-x extensoes.txt` — carrega lista de extensões  
-- `-N 404` — ignora um código HTTP  
-- `-r` — desativa recursão  
-- `-R` — recursão interativa  
-- `-u usuario:senha` — autenticação  
-- `-c "cookie=valor"` — envia cookie  
-- `-H "Header: valor"` — cabeçalho customizado  
-- `-p proxy` — usa proxy  
-- `-o saida.txt` — salva resultados  
+- `dirb URL` — execução padrão com wordlist embutida
+- `dirb URL wordlist.txt` — wordlist específica
+- `dirb URL -X .php,.txt,.bak` — testa extensões adicionais
+- `dirb URL -x extensoes.txt` — carrega lista de extensões de arquivo
+- `dirb URL -N 404` — ignora código HTTP específico
+- `dirb URL -r` — desativa recursão
+- `dirb URL -R` — recursão interativa (pergunta a cada subdiretório encontrado)
+- `dirb URL -u usuario:senha` — autenticação básica
+- `dirb URL -c "cookie=valor"` — envia cookie
+- `dirb URL -H "Header: valor"` — header customizado
+- `dirb URL -p http://127.0.0.1:8080` — usa proxy
+- `dirb URL -o saida.txt` — salva resultados
