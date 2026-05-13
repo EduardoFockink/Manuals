@@ -10,7 +10,7 @@ Repositório enxuto de manuais, notas e referências práticas, focado principal
 - [`busca_filtragem.md`](linux/busca_filtragem.md) — `grep`, `cut`, `tr`, `sed`, `awk`, `sort`, `uniq`, `wc`, `diff` e pipelines comuns
 - [`compactacao.md`](linux/compactacao.md) — empacotamento e compressão (`tar`, `gzip`, `bzip2`, `xz`, `zstd`, `zip`), codificação (`base64`) e inspeção binária (`xxd`, `strings`)
 - [`tmux.md`](linux/tmux.md) — multiplexador de terminal: sessões, janelas, painéis, modo de cópia e configuração
-- [`hyperland.md`](linux/hyperland.md) — compositor Wayland Hyprland
+- [`hyprland.md`](linux/hyprland.md) — compositor Wayland Hyprland: workspaces, tiling Dwindle, keybinds, waybar e `hyprctl`
 
 ### `networks/`
 
