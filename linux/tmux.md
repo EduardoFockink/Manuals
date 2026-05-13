@@ -1,8 +1,8 @@
 # tmux
 
-`tmux` é um multiplexador de terminal que permite executar múltiplas sessões de shell dentro de uma única janela, alternar entre elas e mantê-las em execução após a desconexão do terminal. É amplamente utilizado em servidores remotos via SSH e em fluxos de trabalho locais que exigem múltiplos contextos simultâneos.
+`tmux` é um multiplexador de terminal: executa várias sessões de shell dentro de uma única janela, alterna entre elas e mantém os processos vivos após a desconexão. É a ferramenta padrão para trabalho persistente em servidores remotos via SSH e para fluxos locais com múltiplos contextos simultâneos.
 
-O prefixo padrão de todos os atalhos é `Ctrl+b`, seguido da tecla correspondente ao comando.
+Todos os atalhos são acionados após uma tecla **prefixo**, padrão `Ctrl+b`. O prefixo pode ser redefinido no `~/.tmux.conf` (`set -g prefix C-Space`, por exemplo).
 
 ## Sumário
 
@@ -17,7 +17,11 @@ O prefixo padrão de todos os atalhos é `Ctrl+b`, seguido da tecla corresponden
 
 ## Conceitos fundamentais
 
-O tmux organiza o trabalho em três níveis hierárquicos: **sessões**, que representam um contexto completo de trabalho persistente; **janelas**, equivalentes a abas dentro de uma sessão; e **painéis**, divisões da área visível de uma janela. Uma sessão sobrevive ao fechamento do terminal e pode ser retomada a qualquer momento, o que torna o tmux útil para trabalhos longos em máquinas remotas.
+O tmux organiza o trabalho em três níveis hierárquicos:
+
+- **Sessão** — contexto completo e persistente; sobrevive ao fechamento do terminal e pode ser retomada por `attach`.
+- **Janela** — equivalente a uma aba dentro de uma sessão.
+- **Painel** — divisão da área visível de uma janela, cada um rodando seu próprio shell.
 
 ```
 Sessão
@@ -32,69 +36,62 @@ Sessão
 
 ## Sessões
 
-### new-session
+### Criar
 
-Cria uma nova sessão independente. Sessões nomeadas facilitam a identificação e o `attach` posterior; a flag `-d` cria a sessão em segundo plano, sem anexá-la ao terminal atual.
+Sessões nomeadas facilitam o `attach` posterior. A flag `-d` cria em segundo plano, sem anexar ao terminal atual.
 
-- `tmux` — cria e anexa a uma nova sessão
+- `tmux` — cria e anexa a uma nova sessão sem nome
 - `tmux new -s nome` — cria sessão nomeada
 - `tmux new -s nome -d` — cria em background
 
-### attach-session
+### Anexar e desanexar
 
-Reconecta o terminal a uma sessão existente, restaurando o estado das janelas e painéis tal como estavam no momento do `detach`.
+`attach` reconecta o terminal a uma sessão existente, restaurando janelas e painéis no estado em que estavam. `detach` desvincula o terminal sem encerrar a sessão — os processos continuam rodando em background.
 
-- `tmux attach` — anexa à última sessão
+- `tmux attach` — anexa à última sessão usada
 - `tmux a -t nome` — anexa à sessão nomeada
+- `Ctrl+b d` — desanexa
+- `tmux detach` — equivalente via comando
 
-### detach
+### Listar e alternar
 
-Desvincula o terminal da sessão sem encerrá-la. Os processos continuam em execução em segundo plano.
+Diferente de `detach`/`attach`, `switch-client` apenas troca qual sessão é exibida sem desfazer a conexão — essencial quando o tmux é o processo principal da janela do terminal, pois evita que o `detach` feche a janela.
 
-- `Ctrl+b d` — atalho de detach
-- `tmux detach` — equivalente via linha de comando
+- `tmux ls` — lista as sessões ativas no terminal
+- `Ctrl+b s` — seletor interativo de sessões (`choose-session`)
+- `Ctrl+b w` — árvore de sessões, janelas e painéis (`choose-tree`); navega com setas, `Enter` seleciona, `x` mata, `/` busca
+- `Ctrl+b (` / `Ctrl+b )` — sessão anterior / próxima (ordem alfabética)
+- `tmux switch-client -t nome` — troca direto via comando
 
-### kill-session
+### Encerrar
 
-Encerra uma sessão e todos os processos associados aos seus painéis. `kill-server` finaliza o próprio servidor tmux, destruindo todas as sessões ativas.
+`kill-session` encerra uma sessão e todos os processos dos seus painéis. `kill-server` finaliza o servidor inteiro, destruindo todas as sessões ativas.
 
 - `tmux kill-session -t nome`
-- `tmux kill-server` — encerra o servidor inteiro
-
-### list-sessions
-
-Lista as sessões ativas com nome, número de janelas e estado de anexação.
-
-- `tmux ls` — lista no terminal
-- `Ctrl+b s` — lista interativa dentro do tmux
+- `tmux kill-server`
 
 ---
 
 ## Janelas
 
-### new-window
+### Criar e renomear
 
-Cria uma nova janela na sessão atual, análoga a uma nova aba. A janela criada herda o diretório de trabalho da janela de origem.
+A janela criada herda o diretório de trabalho da janela de origem. O rótulo aparece na barra de status.
 
 - `Ctrl+b c` — nova janela
 - `tmux new-window -n nome` — janela nomeada
-
-### rename-window
-
-Define o rótulo da janela exibido na barra de status, útil para identificar o propósito de cada aba.
-
-- `Ctrl+b ,` — prompt interativo
+- `Ctrl+b ,` — renomeia (prompt interativo)
 - `tmux rename-window nome`
 
-### next-window / prev-window
+### Navegar
 
-Alterna o foco entre janelas da sessão. O acesso direto por número é o atalho mais rápido quando há poucas janelas.
+O acesso por índice é o mais rápido com poucas janelas. Para muitas, prefira o seletor por árvore (`Ctrl+b w`, descrito em [Sessões](#listar-e-alternar)).
 
 - `Ctrl+b n` / `Ctrl+b p` — próxima / anterior
 - `Ctrl+b 0-9` — acesso direto por índice
-- `Ctrl+b w` — seletor interativo
+- `Ctrl+b l` — alterna com a janela usada por último
 
-### kill-window
+### Encerrar
 
 Fecha a janela atual e todos os seus painéis. Pede confirmação por padrão.
 
@@ -105,60 +102,77 @@ Fecha a janela atual e todos os seus painéis. Pede confirmação por padrão.
 
 ## Painéis
 
-### split-window
+### Dividir
 
-Divide a janela atual em dois painéis, horizontal ou verticalmente. O novo painel inicia no mesmo diretório do painel original quando configurado adequadamente.
+Divide a janela atual. O novo painel inicia no mesmo diretório do original quando os binds usam `-c "#{pane_current_path}"`.
 
-- `Ctrl+b %` — divisão vertical (lado a lado)
-- `Ctrl+b "` — divisão horizontal (acima/abaixo)
+- `Ctrl+b %` — divisão vertical (linha divisória vertical, painéis lado a lado)
+- `Ctrl+b "` — divisão horizontal (linha divisória horizontal, painéis empilhados)
 - `tmux split-window -h` / `-v`
 
-### select-pane
+### Navegar
 
-Move o foco do teclado entre os painéis da janela. A navegação por setas é o padrão; atalhos vim requerem `mode-keys vi` no `~/.tmux.conf`.
+A navegação por setas é o padrão; binds vim-like (`h j k l`) requerem configuração explícita.
 
 - `Ctrl+b ←↑↓→` — direcional
 - `Ctrl+b o` — próximo painel
-- `Ctrl+b q` — exibe números; `Ctrl+b q N` salta ao painel N
+- `Ctrl+b ;` — alterna com o painel usado por último
+- `Ctrl+b q` — exibe os números dos painéis; pressionar `N` em seguida salta ao painel N
 
-### resize-pane
+### Redimensionar
 
-Ajusta as dimensões do painel atual. Os passos com `Ctrl` são finos; com `Alt`, grossos.
+Passos com `Ctrl` são finos; com `Alt`, grossos.
 
 - `Ctrl+b Ctrl+←↑↓→` — passo de 1
 - `Ctrl+b Alt+←↑↓→` — passo de 5
-- `tmux resize-pane -L|R|U|D N` — N células na direção
+- `tmux resize-pane -L|R|U|D N` — N células na direção indicada
 
-### kill-pane
+### Reorganizar
 
-Encerra o painel atual. Sair do shell (`exit`) tem o mesmo efeito.
+Troca a posição dos painéis sem refazer os splits.
+
+- `Ctrl+b {` / `Ctrl+b }` — move o painel atual para a posição anterior / próxima
+- `Ctrl+b Ctrl+o` / `Ctrl+b Alt+o` — rotaciona todos no sentido horário / anti-horário
+- `Ctrl+b Space` — cicla layouts predefinidos (`even-horizontal`, `even-vertical`, `main-horizontal`, `main-vertical`, `tiled`)
+- `tmux swap-pane -s N -t M` — troca o painel N com o M (use `Ctrl+b q` para ver os números)
+- `tmux select-layout tiled` — aplica layout específico
+
+### Mover entre janelas
+
+- `Ctrl+b !` — extrai o painel atual em uma janela nova
+- `tmux join-pane -s :2` — traz painel da janela 2 para a atual
+- `tmux join-pane -t :1` — envia o painel atual para a janela 1
+
+### Zoom
+
+Expande o painel atual para ocupar toda a janela, preservando o layout original. Útil para foco temporário.
+
+- `Ctrl+b z` — alterna zoom
+
+### Encerrar
+
+Sair do shell (`exit`) tem o mesmo efeito.
 
 - `Ctrl+b x`
 - `tmux kill-pane`
-
-### zoom
-
-Expande temporariamente o painel atual para ocupar toda a janela, preservando o layout original para restauração posterior.
-
-- `Ctrl+b z` — alterna zoom
 
 ---
 
 ## Modo de cópia
 
-O modo de cópia permite rolar o histórico do buffer e selecionar texto sem o mouse. Com `mode-keys vi`, a navegação e a seleção seguem as convenções do vim.
+Permite rolar o histórico do buffer e selecionar texto sem o mouse. Com `mode-keys vi`, navegação e seleção seguem as convenções do vim.
 
 ### Entrar e sair
 
 - `Ctrl+b [` — entra no modo
-- `q` — sai do modo
+- `q` — sai
 
 ### Navegação (vi)
 
 - `h j k l` — movimento do cursor
 - `Ctrl+u` / `Ctrl+d` — meia página acima / abaixo
 - `gg` / `G` — início / fim do buffer
-- `/termo` `?termo` — busca adiante / atrás; `n` / `N` repete
+- `/termo` / `?termo` — busca adiante / atrás; `n` / `N` repete
 
 ### Seleção e cópia
 
@@ -166,10 +180,11 @@ O modo de cópia permite rolar o histórico do buffer e selecionar texto sem o m
 - `y` — copia para o buffer do tmux
 - `Ctrl+b ]` — cola
 
-Para integrar com o clipboard do sistema:
+Integração com o clipboard do sistema (Wayland ou X11):
 
 ```tmux
-bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -selection clipboard"
+bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel \
+  "wl-copy 2>/dev/null || xclip -selection clipboard"
 ```
 
 ---
@@ -178,7 +193,7 @@ bind-key -T copy-mode-vi y send-keys -X copy-pipe-and-cancel "xclip -selection c
 
 ### ~/.tmux.conf
 
-Arquivo lido na inicialização do servidor, define opções globais, atalhos e aparência. Opções comuns:
+Lido na inicialização do servidor; define opções globais, atalhos e aparência. Opções comuns:
 
 ```tmux
 set  -g mouse on
@@ -186,12 +201,12 @@ setw -g mode-keys vi
 set  -g history-limit 10000
 set  -g base-index 1
 set  -g status-position top
-bind r source-file ~/.tmux.conf
+bind r source-file ~/.tmux.conf \; display "Config reloaded"
 ```
 
-### source-file
+### Recarregar (source-file)
 
-Recarrega o arquivo de configuração sem reiniciar o servidor, aplicando alterações às sessões em execução.
+Aplica as alterações às sessões em execução sem reiniciar o servidor.
 
 - `tmux source-file ~/.tmux.conf`
 - `Ctrl+b :source ~/.tmux.conf`

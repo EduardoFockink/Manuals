@@ -1,26 +1,31 @@
 # 💻 Computer Science Manuals
 
-A concise repository of manuals, notes, and practical references focused mainly on computer science.
+Repositório enxuto de manuais, notas e referências práticas, focado principalmente em ciência da computação. O objetivo é organizar material direto e útil sobre ferramentas, conceitos, fluxos de trabalho e tópicos técnicos — uma base de conhecimento limpa, fácil de navegar, ler e expandir.
 
-This project is intended to organize direct, useful material on tools, concepts, workflows, and technical topics.
+## Estrutura
 
-## Current structure
+### `linux/`
 
-- `linux/` — shell command references and practical Linux guides
-- `networks/` — notes, manuals, and references related to networking
+- [`comandos_shell.md`](linux/comandos_shell.md) — navegação, manipulação de arquivos, inspeção, leitura e composição de pipelines
+- [`busca_filtragem.md`](linux/busca_filtragem.md) — `grep`, `cut`, `tr`, `sed`, `awk`, `sort`, `uniq`, `wc`, `diff` e pipelines comuns
+- [`tmux.md`](linux/tmux.md) — multiplexador de terminal: sessões, janelas, painéis, modo de cópia e configuração
+- [`hyperland.md`](linux/hyperland.md) — compositor Wayland Hyprland
 
-## Scope
+### `networks/`
 
-This repository may include:
-- tool manuals
-- topic-specific guides
-- informative notes
-- quick technical references
+- [`scan_tools.md`](networks/scan_tools.md) — ferramentas de scan e reconhecimento de rede (`whois`, `nslookup`, `host`, `traceroute`, `whatweb`, `dnsmap`, `dirb`)
 
-## Goal
+### `operating-systems/`
 
-To build a clean and practical knowledge base that is easy to navigate, read, and expand.
+Reservado para futuras notas sobre sistemas operacionais.
 
----
+## Escopo
 
-Clear structure. Useful content. Fast consultation.
+- manuais de ferramentas
+- guias específicos por tópico
+- notas informativas
+- referências técnicas rápidas
+
+## Estilo
+
+Os documentos seguem um padrão wiki: introdução curta explicando o "porquê", seções diretas com bullets de uso e inline backticks. Frases destacam nuances e armadilhas comuns, não só sintaxe.
