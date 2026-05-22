@@ -15,6 +15,7 @@ Padrões para escrita e manutenção de manuais neste repositório.
 linux/             shell, terminal, ambiente
 networks/          rede e segurança
 operating-systems/ conceitos de SO
+pentest/           metodologia e ferramentas de pentest
 ```
 
 Um manual por arquivo `.md`, em `snake_case` ou `kebab-case` (manter consistência por diretório). Editar arquivo existente antes de criar novo. Quando um tópico cresce demais dentro de um doc, extrair para arquivo dedicado e deixar uma referência cruzada no original.

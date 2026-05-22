@@ -16,6 +16,13 @@ Repositório enxuto de manuais, notas e referências práticas, focado principal
 
 - [`scan_tools.md`](networks/scan_tools.md) — ferramentas de scan e reconhecimento de rede (`whois`, `nslookup`, `host`, `traceroute`, `whatweb`, `dnsmap`, `dirb`)
 
+### `pentest/`
+
+- [`pentest.md`](pentest/pentest.md) — fases do pentest (reconhecimento, scanning, enumeração, exploração, pós-exploração, relatório) e referência ao MITRE ATT&CK
+- [`information-gathering/information-gathering.md`](pentest/information-gathering/information-gathering.md) — coleta de informações: Google Dorks, `ping`, `host`, Shodan
+- [`scanning/scanning.md`](pentest/scanning/scanning.md) — varredura ativa: `hping`
+- [`enumeration/enumeration.md`](pentest/enumeration/enumeration.md) — enumeração de serviços: `nmap`
+
 ### `operating-systems/`
 
 Reservado para futuras notas sobre sistemas operacionais.
